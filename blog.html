@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Blog — Kalisayar Mukherjee</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #16161b;
+      --surface:   #1e1e26;
+      --surface-2: #26262f;
+      --border:    #2e2e3a;
+      --text:      #e4e4ef;
+      --muted:     #72728a;
+      --accent:    #5188ff;
+      --accent-dim:#1f306e;
+      --btn-bg:    #e4e4ef;
+      --btn-text:  #16161b;
+      --font:      'Manrope', sans-serif;
+      --serif:     'Fraunces', Georgia, serif;
+      --max:       1280px;
+      --pad:       80px;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.032;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+      background-repeat: repeat;
+    }
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: 72px;
+      display: flex;
+      align-items: center;
+      padding: 0 var(--pad);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      background: rgba(22,22,27,0.55);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.05), 0 4px 24px rgba(0,0,0,0.3);
+    }
+    .nav-inner {
+      width: 100%;
+      max-width: var(--max);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .nav-logo { font-size: 18px; font-weight: 800; color: var(--text); text-decoration: none; letter-spacing: -0.02em; }
+    .nav-links { display: flex; gap: 40px; list-style: none; }
+    .nav-links a { font-size: 14px; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .nav-links a:hover, .nav-links a.active { color: var(--text); }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 10px 24px;
+      background: var(--btn-bg); color: var(--btn-text);
+      font-family: var(--font); font-size: 14px; font-weight: 600;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: background 0.2s, color 0.2s;
+    }
+    .btn:hover { background: var(--muted); color: var(--text); }
+
+    /* Scroll bar */
+    .scroll-bar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 2px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #a0c4ff);
+      z-index: 200;
+      transition: width 0.05s linear;
+      box-shadow: 0 0 8px rgba(81,136,255,0.6);
+    }
+
+    /* Cursor */
+    .cursor-dot, .cursor-ring {
+      position: fixed; top: 0; left: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      opacity: 0;
+    }
+    .cursor-dot {
+      width: 9px; height: 9px;
+      background: #fff;
+      border-radius: 50%;
+      z-index: 9999;
+      transition: width 0.2s, height 0.2s, opacity 0.2s, background 0.2s;
+      box-shadow: 0 0 8px rgba(255,255,255,0.8);
+    }
+    .cursor-ring {
+      width: 36px; height: 36px;
+      border: 1.5px solid rgba(255,255,255,0.5);
+      border-radius: 50%;
+      z-index: 9998;
+      transition: width 0.25s, height 0.25s, opacity 0.2s, border-color 0.2s;
+    }
+    .cursor-hover .cursor-dot { width: 12px; height: 12px; background: var(--accent); box-shadow: 0 0 12px rgba(81,136,255,0.9); }
+    .cursor-hover .cursor-ring { width: 52px; height: 52px; border-color: rgba(81,136,255,0.5); }
+
+    /* HEADER */
+    .blog-header {
+      padding: 120px var(--pad) 60px;
+      position: relative;
+      overflow: hidden;
+    }
+    .blog-header-inner { max-width: var(--max); margin: 0 auto; position: relative; z-index: 2; }
+    .blog-blob {
+      position: absolute;
+      left: -120px; top: 80px;
+      width: 600px; height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(81,136,255,0.15) 0%, transparent 70%);
+      filter: blur(60px);
+      animation: blobPulse 8s ease-in-out infinite;
+      pointer-events: none;
+    }
+    @keyframes blobPulse {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50%     { transform: scale(1.1); opacity: 0.7; }
+    }
+    .blog-eyebrow {
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+    .blog-title {
+      font-family: var(--serif);
+      font-size: clamp(56px, 8vw, 96px);
+      font-weight: 700;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      margin-bottom: 28px;
+    }
+    .blog-title em { font-style: italic; color: var(--accent); }
+    .blog-sub {
+      font-size: 18px;
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.7;
+    }
+
+    /* DEV NOTICE BANNER */
+    .blog-dev-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 28px;
+      padding: 8px 16px 8px 12px;
+      background: rgba(236, 72, 153, 0.08);
+      border: 1px solid rgba(236, 72, 153, 0.35);
+      border-radius: 99px;
+      font-family: var(--font);
+      font-size: 12px;
+      max-width: 100%;
+      flex-wrap: wrap;
+      box-shadow: 0 0 20px rgba(236, 72, 153, 0.10);
+    }
+    .dev-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: #ec4899;
+      box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.28), 0 0 8px #ec4899;
+      animation: devPulse 1.8s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+    @keyframes devPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: 0.5; transform: scale(1.15); }
+    }
+    .dev-label {
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #ec4899;
+      font-size: 11px;
+    }
+    .dev-text { color: var(--muted); }
+
+    /* CATEGORY PILLS */
+    .category-row {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-top: 48px;
+    }
+    .cat-pill {
+      padding: 8px 18px;
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      border-radius: 99px;
+    }
+    .cat-pill.active, .cat-pill:hover {
+      background: var(--btn-bg);
+      color: var(--btn-text);
+      border-color: var(--btn-bg);
+    }
+
+    /* MAIN GRID */
+    .blog-main {
+      padding: 40px var(--pad) 120px;
+      position: relative;
+      z-index: 2;
+    }
+    .blog-main-inner { max-width: var(--max); margin: 0 auto; }
+
+    /* FEATURED POST */
+    .featured-post {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 60px;
+      align-items: center;
+      padding: 56px;
+      border: 1px solid var(--border);
+      background: linear-gradient(135deg, var(--surface) 0%, var(--surface-2) 100%);
+      margin-bottom: 80px;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .featured-post:hover { border-color: var(--accent); transform: translateY(-3px); }
+    .featured-post::before {
+      content: 'Featured';
+      position: absolute;
+      top: 20px; right: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      background: var(--accent);
+      color: var(--bg);
+      padding: 4px 10px;
+    }
+    .featured-meta {
+      display: flex; gap: 14px; align-items: center;
+      font-size: 12px; color: var(--muted);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .featured-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+    .featured-post h2 {
+      font-family: var(--serif);
+      font-size: clamp(32px, 3.5vw, 44px);
+      font-weight: 700;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      margin-bottom: 20px;
+    }
+    .featured-post p { font-size: 16px; color: var(--muted); line-height: 1.7; margin-bottom: 28px; }
+    .read-more {
+      display: inline-flex; gap: 8px; align-items: center;
+      font-size: 14px; font-weight: 600;
+      color: var(--text);
+      transition: gap 0.2s;
+    }
+    .featured-post:hover .read-more { gap: 14px; }
+    .featured-visual {
+      aspect-ratio: 4/5;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .featured-visual svg { width: 100%; height: 100%; opacity: 0.08; }
+
+    /* POSTS GRID */
+    .posts-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .post-card {
+      display: flex; flex-direction: column;
+      padding: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.3s, background 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+      min-height: 340px;
+    }
+    .post-card::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--accent);
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.4s;
+    }
+    .post-card:hover { background: var(--surface-2); border-color: #3c3c50; transform: translateY(-3px); }
+    .post-card:hover::after { transform: scaleX(1); }
+    .post-meta {
+      display: flex; gap: 10px; align-items: center;
+      font-size: 11px; color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .post-meta .cat { color: var(--accent); font-weight: 600; }
+    .post-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+    .post-card h3 {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+      margin-bottom: 14px;
+    }
+    .post-card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.65;
+      flex-grow: 1;
+    }
+    .post-footer {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+    .post-read-time { font-size: 12px; color: var(--muted); }
+    .post-arrow { color: var(--muted); transition: color 0.2s, transform 0.2s; }
+    .post-card:hover .post-arrow { color: var(--text); transform: translate(3px,-3px); }
+
+    /* CTA SECTION */
+    .blog-cta {
+      margin-top: 100px;
+      padding: 60px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .blog-cta h2 {
+      font-family: var(--serif);
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 14px;
+    }
+    .blog-cta p {
+      color: var(--muted);
+      max-width: 480px;
+      margin: 0 auto 28px;
+      line-height: 1.7;
+    }
+
+    /* FOOTER */
+    footer {
+      background: var(--surface-2);
+      border-top: 1px solid var(--border);
+      padding: 40px var(--pad);
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+    footer span { font-size: 12px; color: var(--muted); }
+
+    /* READER OVERLAY */
+    .reader {
+      position: fixed; inset: 0;
+      z-index: 500;
+      background: rgba(10,10,14,0.85);
+      backdrop-filter: blur(12px);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      overflow-y: auto;
+      padding: 60px 20px;
+    }
+    .reader.open { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .reader-inner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      max-width: 760px; width: 100%;
+      padding: 64px 72px;
+      position: relative;
+      animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes slideUp { from { transform: translateY(40px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .reader-close {
+      position: absolute; top: 24px; right: 24px;
+      width: 36px; height: 36px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .reader-close:hover { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+    .reader-meta {
+      display: flex; gap: 12px; align-items: center;
+      font-size: 11px; color: var(--muted);
+      letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+    .reader-meta .cat { color: var(--accent); font-weight: 600; }
+    .reader-meta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+    .reader-inner h1 {
+      font-family: var(--serif);
+      font-size: 40px; font-weight: 700;
+      line-height: 1.1; letter-spacing: -0.02em;
+      margin-bottom: 32px;
+    }
+    .reader-body { font-size: 16px; line-height: 1.8; color: var(--text); }
+    .reader-body p { margin-bottom: 20px; color: #c4c4d4; }
+    .reader-body h2 { font-family: var(--serif); font-size: 24px; margin: 36px 0 16px; }
+    .reader-body code { background: var(--surface-2); padding: 2px 6px; font-family: monospace; font-size: 14px; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="scroll-bar" id="scrollBar"></div>
+  <div class="cursor-dot" id="cursorDot"></div>
+  <div class="cursor-ring" id="cursorRing"></div>
+
+  <nav>
+    <div class="nav-inner">
+      <a href="portfolio.html" class="nav-logo">Kalisayar.</a>
+      <ul class="nav-links">
+        <li><a href="portfolio.html">Home</a></li>
+        <li><a href="portfolio.html#about">About</a></li>
+        <li><a href="portfolio.html#projects">Projects</a></li>
+        <li><a href="blog.html" class="active">Blog</a></li>
+        <li><a href="portfolio.html#contact">Contact</a></li>
+      </ul>
+      <a href="portfolio.html#contact" class="btn">Hire me</a>
+    </div>
+  </nav>
+
+  <!-- HEADER -->
+  <header class="blog-header">
+    <div class="blog-blob"></div>
+    <div class="blog-header-inner">
+      <p class="blog-eyebrow">The Journal</p>
+      <h1 class="blog-title">Thoughts<br/>on <em>code</em>, contests<br/>&amp; building things.</h1>
+      <p class="blog-sub">Notes from late-night debug sessions, contest postmortems, and lessons from shipping AI systems as a CS student.</p>
+      <div class="blog-dev-banner">
+        <span class="dev-dot"></span>
+        <span class="dev-label">Under Active Development</span>
+        <span class="dev-text">— posts below are early drafts; the full archive is on the way.</span>
+      </div>
+      <div class="category-row">
+        <button class="cat-pill active" data-cat="all">All</button>
+        <button class="cat-pill" data-cat="cp">Competitive Programming</button>
+        <button class="cat-pill" data-cat="ai">AI / LLM</button>
+        <button class="cat-pill" data-cat="dev">Engineering</button>
+        <button class="cat-pill" data-cat="learn">Learning</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="blog-main">
+    <div class="blog-main-inner">
+
+      <!-- FEATURED POST -->
+      <a href="#" class="featured-post" data-cat="ai" data-post="post-streaming-llm">
+        <div class="featured-content">
+          <div class="featured-meta">
+            <span>AI / LLM</span>
+            <span class="dot"></span>
+            <span>May 2026</span>
+            <span class="dot"></span>
+            <span>8 min read</span>
+          </div>
+          <h2>Why Streaming LLM Output is Harder Than It Looks</h2>
+          <p>While building Letterline, I expected JSON parsing to be the easy part — and it was anything but. Models love returning broken brackets mid-stream, half-quoted strings, and inconsistent structure. Here's how a brace-counting NDJSON extractor saved the project.</p>
+          <span class="read-more">Read article <span>→</span></span>
+        </div>
+        <div class="featured-visual">
+          <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+                <path d="M 40 0 L 0 0 0 40" stroke="currentColor" stroke-width="0.5" fill="none"/>
+              </pattern>
+            </defs>
+            <rect width="400" height="500" fill="url(#grid)"/>
+            <text x="50" y="80" font-family="monospace" font-size="12" fill="currentColor">{ "title":</text>
+            <text x="50" y="100" font-family="monospace" font-size="12" fill="currentColor">  "Streaming...",</text>
+            <text x="50" y="120" font-family="monospace" font-size="12" fill="currentColor">  "score": 0.92,</text>
+            <text x="50" y="140" font-family="monospace" font-size="12" fill="currentColor">  "summary": "..."</text>
+            <text x="50" y="160" font-family="monospace" font-size="12" fill="currentColor">}</text>
+          </svg>
+        </div>
+      </a>
+
+      <!-- POSTS GRID -->
+      <div class="posts-grid" id="postsGrid">
+
+        <a href="#" class="post-card" data-cat="cp" data-post="post-codeforces-grind">
+          <div class="post-meta">
+            <span class="cat">Competitive Programming</span>
+            <span class="dot"></span>
+            <span>Apr 2026</span>
+          </div>
+          <h3>Climbing to Pupil: My 4-Month Codeforces Grind</h3>
+          <p>From rated 800 to 1271. The drills, the regrets, the problems that taught me how to actually think — not just type fast.</p>
+          <div class="post-footer">
+            <span class="post-read-time">6 min read</span>
+            <span class="post-arrow">↗</span>
+          </div>
+        </a>
+
+        <a href="#" class="post-card" data-cat="ai" data-post="post-rag-chatbot">
+          <div class="post-meta">
+            <span class="cat">AI / LLM</span>
+            <span class="dot"></span>
+            <span>Mar 2026</span>
+          </div>
+          <h3>Building a RAG Chatbot That Doesn't Hallucinate</h3>
+          <p>Lessons from the HR Policy Chatbot — why ChromaDB + LangGraph beat my first naive prompt-chaining attempt by a mile.</p>
+          <div class="post-footer">
+            <span class="post-read-time">9 min read</span>
+            <span class="post-arrow">↗</span>
+          </div>
+        </a>
+
+        <a href="#" class="post-card" data-cat="dev" data-post="post-fastapi-next">
+          <div class="post-meta">
+            <span class="cat">Engineering</span>
+            <span class="dot"></span>
+            <span>Feb 2026</span>
+          </div>
+          <h3>FastAPI + Next.js: A Stack I Actually Like</h3>
+          <p>Why I keep coming back to this combo for AI-driven side projects, and the deployment quirks nobody warns you about.</p>
+          <div class="post-footer">
+            <span class="post-read-time">5 min read</span>
+            <span class="post-arrow">↗</span>
+          </div>
+        </a>
+
+        <a href="#" class="post-card" data-cat="learn" data-post="post-650-rule">
+          <div class="post-meta">
+            <span class="cat">Learning</span>
+            <span class="dot"></span>
+            <span>Feb 2026</span>
+          </div>
+          <h3>The 650-Problem Rule</h3>
+          <p>What changed in my problem-solving after grinding through CSES, LeetCode, and Codeforces. Volume isn't everything, but it's a lot.</p>
+          <div class="post-footer">
+            <span class="post-read-time">4 min read</span>
+            <span class="post-arrow">↗</span>
+          </div>
+        </a>
+
+        <a href="#" class="post-card" data-cat="ai" data-post="post-bge-embeddings">
+          <div class="post-meta">
+            <span class="cat">AI / LLM</span>
+            <span class="dot"></span>
+            <span>Jan 2026</span>
+          </div>
+          <h3>Six Signals, One Verdict — Inside TrustScan</h3>
+          <p>How a Chrome extension, a FastAPI backend, and a graph database team up to catch fake reviews and coordinated reviewer rings across Indian e-commerce.</p>
+          <div class="post-footer">
+            <span class="post-read-time">10 min read</span>
+            <span class="post-arrow">↗</span>
+          </div>
+        </a>
+
+        <a href="#" class="post-card" data-cat="cp" data-post="post-sih-postmortem">
+          <div class="post-meta">
+            <span class="cat">Competitive Programming</span>
+            <span class="dot"></span>
+            <span>Jan 2026</span>
+          </div>
+          <h3>SIH 2024 Postmortem: Top 45 of 520+</h3>
+          <p>What worked, what we'd cut, and how a 36-hour hackathon teaches you more about engineering than a semester.</p>
+          <div class="post-footer">
+            <span class="post-read-time">8 min read</span>
+            <span class="post-arrow">↗</span>
+          </div>
+        </a>
+
+      </div>
+
+      <!-- CTA -->
+      <div class="blog-cta">
+        <h2>More posts coming soon.</h2>
+        <p>Subscribe via GitHub to follow new writing and projects as I publish them.</p>
+        <a href="https://github.com/xHydr1dex" target="_blank" class="btn">Follow on GitHub →</a>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- READER OVERLAY -->
+  <div class="reader" id="reader">
+    <div class="reader-inner">
+      <button class="reader-close" id="readerClose">×</button>
+      <div class="reader-meta" id="readerMeta"></div>
+      <h1 id="readerTitle"></h1>
+      <div class="reader-body" id="readerBody"></div>
+    </div>
+  </div>
+
+  <!-- POST CONTENT (hidden templates — edit these anytime) -->
+  <template id="post-streaming-llm">
+    <p><em>Note: this is a placeholder draft — replace with your real article.</em></p>
+    <p>While building Letterline, I expected JSON parsing to be the easy part. After all, LLMs return structured output, right? Wrong. Models love returning broken brackets mid-stream, half-quoted strings, and inconsistent formatting.</p>
+    <h2>The problem</h2>
+    <p>Streaming output means you receive partial tokens — sometimes mid-string, mid-bracket. <code>JSON.parse()</code> chokes on every incomplete chunk.</p>
+    <h2>The fix</h2>
+    <p>A brace-counting NDJSON extractor: track open/close braces, only emit complete objects, drop malformed ones. Simple, robust, ships 5 ranked stories every time.</p>
+    <p>More to come — I'll be adding the actual implementation walk-through and benchmarks soon.</p>
+  </template>
+
+  <template id="post-codeforces-grind">
+    <p><em>Placeholder draft — replace anytime.</em></p>
+    <p>4 months ago I was rated 800. Today, 1271. Pupil. Here's everything I changed.</p>
+    <h2>What worked</h2>
+    <p>Consistency over volume. 1 problem per day at my level, not 5 at random difficulties. Editorial after every attempt, even successful ones.</p>
+    <p>Full breakdown coming soon — drills, regrets, and the specific problems that taught me how to actually think.</p>
+  </template>
+
+  <template id="post-rag-chatbot">
+    <p><em>Placeholder draft — replace anytime.</em></p>
+    <p>My first RAG attempt was naive prompt-chaining. It hallucinated 30% of the time. Here's how the HR Policy Chatbot ended up at &lt;5%.</p>
+    <p>Full article in progress.</p>
+  </template>
+
+  <template id="post-fastapi-next">
+    <p><em>Placeholder draft — replace anytime.</em></p>
+    <p>FastAPI on the backend, Next.js on the front. I keep coming back to this stack and here's why it works for AI-heavy projects.</p>
+    <p>Coming soon.</p>
+  </template>
+
+  <template id="post-650-rule">
+    <p><em>Placeholder draft — replace anytime.</em></p>
+    <p>Volume isn't everything, but it's a lot. Here's what changed in my problem-solving after grinding 650+ problems across CSES, LeetCode, and Codeforces.</p>
+    <p>Coming soon.</p>
+  </template>
+
+  <template id="post-bge-embeddings">
+    <p>Fake reviews are everywhere on Indian e-commerce — five-star storms on no-name products, suspiciously identical paragraphs across a brand's entire catalog, reviewer accounts that exist only to praise one seller. TrustScan was my attempt to make that visible to anyone shopping, right inside the browser.</p>
+
+    <h2>The core idea</h2>
+    <p>Don't trust any single signal. Combine six of them. Each review is run through a pipeline that produces a <code>0–100</code> trust score, surfaced as a coloured badge directly on Amazon, Flipkart, and Myntra product pages.</p>
+
+    <h2>The six-stage pipeline</h2>
+    <p><strong>1. Rule engine</strong> — the cheap stuff first. Unverified five-star reviews, two-word entries, all-caps shouting, excessive punctuation. Catches the lazy fakes for free.</p>
+    <p><strong>2. ML classifier</strong> — a Random Forest trained on labelled fake-review datasets. Outputs a fake probability between 0 and 1. Not perfect alone, but a strong second opinion.</p>
+    <p><strong>3. Semantic similarity</strong> — BGE-small embeddings stored in ChromaDB. Catches near-duplicate reviews across the same product, even when the words are reshuffled. This is where most copy-paste fake-review farms get exposed.</p>
+    <p><strong>4. LLM judge</strong> — Groq's LLaMA 3.3 70B reads the review and rates authenticity. Slow and expensive per call, so it only runs in <code>?deep=true</code> mode or as a tiebreaker.</p>
+    <p><strong>5. Reviewer profiler</strong> — historical behaviour. Burst posting, single-product accounts, rating bias toward one brand.</p>
+    <p><strong>6. Ring detection</strong> — the most interesting one. A NetworkX graph maps reviewers to the products they've touched. Two reviewers sharing 2+ brand products → flagged as a <em>ring pair</em>. One reviewer hitting 3+ products from the same brand → <em>carpet bomber</em>.</p>
+
+    <h2>Why a Chrome extension</h2>
+    <p>A dashboard nobody opens is useless. The whole point is to nudge people at the moment of decision — when they're staring at the reviews and about to click <em>Buy</em>. So TrustScan injects badges directly onto the page after a single <code>🛡 Scan Reviews</code> click.</p>
+    <p>Even better: the extension keeps a small local <code>knapsack</code> in <code>chrome.storage.local</code>. The more products you scan from the same brand, the more accurate ring detection becomes — your own browsing history becomes the dataset.</p>
+
+    <h2>The hardest part</h2>
+    <p>Honestly? Scraping. Each marketplace has its own DOM, lazy-loaded reviews, and anti-bot behaviour. Amazon, Flipkart, Myntra, and Meesho each got their own content script and their own pain. The ML pipeline was a weekend; the scrapers were a month.</p>
+
+    <h2>The stack</h2>
+    <p><code>FastAPI</code> + <code>scikit-learn</code> + <code>NetworkX</code> + <code>ChromaDB</code> + <code>DuckDB</code> on the backend, hosted on HuggingFace Spaces. <code>Next.js 15</code> dashboard on Vercel. <code>BGE-small-en</code> for embeddings. <code>Groq LLaMA 3.3 70B</code> for the judge. Chrome MV3 extension in vanilla JS.</p>
+
+    <h2>What I'd do differently</h2>
+    <p>Three things. One: I'd train the classifier on my own labelled set instead of public datasets — fake-review patterns in India look different from US Amazon. Two: I'd cache the LLM judge aggressively; right now repeat queries pay the full latency tax. Three: I'd ship a public-write API so shoppers themselves could flag reviews and feed the system.</p>
+
+    <p>The live dashboard sits at <code>xhydr1dex.vercel.app</code>, with 208K+ aggregated Amazon reviews to play with. Source on GitHub.</p>
+  </template>
+
+  <template id="post-sih-postmortem">
+    <p><em>Placeholder draft — replace anytime.</em></p>
+    <p>Top 45 of 520+ teams at SIH 2024. What worked, what we'd cut, and how a 36-hour hackathon teaches you more about engineering than a semester.</p>
+    <p>Coming soon.</p>
+  </template>
+
+  <footer>
+    <span>© 2026 Kalisayar Mukherjee. All rights reserved.</span>
+  </footer>
+
+  <script>
+    // Reader overlay
+    const reader = document.getElementById('reader');
+    const rTitle = document.getElementById('readerTitle');
+    const rMeta  = document.getElementById('readerMeta');
+    const rBody  = document.getElementById('readerBody');
+
+    function openPost(card) {
+      const tplId = card.dataset.post;
+      const tpl = document.getElementById(tplId);
+      const title = card.querySelector('h2, h3')?.textContent || 'Untitled';
+      const meta = card.querySelector('.featured-meta, .post-meta')?.innerHTML || '';
+      rTitle.textContent = title;
+      rMeta.innerHTML = meta;
+      rBody.innerHTML = tpl ? tpl.innerHTML : '<p>Post coming soon.</p>';
+      reader.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeReader() {
+      reader.classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.querySelectorAll('[data-post]').forEach(card => {
+      card.addEventListener('click', e => { e.preventDefault(); openPost(card); });
+    });
+    document.getElementById('readerClose').addEventListener('click', closeReader);
+    reader.addEventListener('click', e => { if (e.target === reader) closeReader(); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeReader(); });
+
+    // Scroll bar
+    const scrollBar = document.getElementById('scrollBar');
+    window.addEventListener('scroll', () => {
+      const total = document.documentElement.scrollHeight - window.innerHeight;
+      scrollBar.style.width = (total > 0 ? (window.scrollY / total) * 100 : 0) + '%';
+    }, { passive: true });
+
+    // Cursor
+    const dot = document.getElementById('cursorDot');
+    const ring = document.getElementById('cursorRing');
+    let mx = 0, my = 0, rx = 0, ry = 0, visible = false;
+    document.addEventListener('mousemove', e => {
+      mx = e.clientX; my = e.clientY;
+      dot.style.left = mx + 'px'; dot.style.top = my + 'px';
+      if (!visible) { visible = true; dot.style.opacity = '1'; ring.style.opacity = '1'; }
+    });
+    (function loop() {
+      rx += (mx - rx) * 0.12; ry += (my - ry) * 0.12;
+      ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+      requestAnimationFrame(loop);
+    })();
+    document.querySelectorAll('a, button, .post-card, .featured-post').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('cursor-hover'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('cursor-hover'));
+    });
+
+    // Category filter
+    document.querySelectorAll('.cat-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const cat = pill.dataset.cat;
+        document.querySelectorAll('.post-card').forEach(card => {
+          const show = cat === 'all' || card.dataset.cat === cat;
+          card.style.display = show ? '' : 'none';
+        });
+        const feat = document.querySelector('.featured-post');
+        if (feat) feat.style.display = (cat === 'all' || feat.dataset.cat === cat) ? '' : 'none';
+      });
+    });
+
+    // Stagger fade-in
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.post-card, .featured-post, .blog-cta').forEach((el, i) => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(28px)';
+      el.style.transition = `opacity 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms, transform 0.6s cubic-bezier(0.16,1,0.3,1) ${i * 60}ms`;
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
